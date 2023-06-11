@@ -14,14 +14,30 @@ const client = new MongoClient(uri, {
   }
 });
 
-// TO DO EX: 4, 7, 10, 11, 12
-
 async function run() {
     await client.connect();
     const db = client.db(process.env.DB_NAME);
     const noticesCollection = db.collection('notices');
     const allNotices = await noticesCollection.find().toArray();
-    // EXERCISES
+    // EXERCISES!
+
+    // Exercise 2
+    app.get('/heartbeat', (request, response) => {
+        try {
+            let currentDate = new Date();
+            let day = currentDate.getDate();
+            let month = currentDate.getMonth() + 1;
+            let year = currentDate.getFullYear();
+            response.write('Current date: ' + day + "-" + month + "-" + year);
+            app.use((request, response, next) => {
+                response.statusCode = 500;
+                response.send('Error' + response.statusCode)
+            })
+            response.end();
+        } catch (error) {
+            throw error;
+        }
+    })
 
     // Exercise 3 and Exercise 9
     let notices = [];
@@ -39,33 +55,98 @@ async function run() {
             response.statusCode = 201;
             response.send(notices);
             noticesCollection.insertMany(notices);
+            notices = [];
         } else{
             response.statusCode = 400;
-            response.send('Wrong input!');
+            response.send(`Error ${response.statusCode}. Wrong input!`);
         }
+        app.use((request, response, next) => {
+            response.statusCode = 500;
+            response.send('Error' + response.statusCode)
+        })
     })
 
     //Exercise 4
     app.get('/getNotice/:id', (request, response) => {
         response.statusCode = 200;
         const findNoticeBasedOnID = allNotices.filter(
-            notice => notice._id === request.params.id
+            notice => notice.id === request.params.id
         );
 
         if(findNoticeBasedOnID.length === 0){
             response.statusCode = 404;
-            response.send('Notice not found');
+            response.send(`Error ${response.statusCode}. Notice not found`);
         } else {
             response.statusCode = 200;
-            response.send(findNoticeBasedOnID[0]);
-        }
-        response.send(request.params.id);
+            if(request.accepts('text/plain')){
+                response.format({
+                text: function () {
+                    response.send(findNoticeBasedOnID[0]);
+                }})
+            } else if(request.accepts('text/html')){
+                response.format({
+                    html: function () {
+                        response.send(findNoticeBasedOnID[0]);
+                }})
+            } else if(request.accepts('application/json')){
+                response.format({
+                    json: function () {
+                        response.send(findNoticeBasedOnID[0]);
+                }})
+            } else {
+                response.statusCode = 400;
+                response.send(`Error ${response.statusCode}. Wrong "Accept" header`);
+            }
+        };
+        app.use((request, response, next) => {
+            response.statusCode = 500;
+            response.send('Error' + response.statusCode)
+        })
     })
 
     // Exercise 5
     app.get('/getNotices', (request, response) => {
         response.statusCode = 200;
-        response.send(allNotices)
+        response.send(allNotices);
+        app.use((request, response, next) => {
+            response.statusCode = 500;
+            response.send('Error' + response.statusCode)
+        })
+    })
+
+    // Exercise 7 and Exercise 10
+    app.patch('/updateNotice/:id', (request, response) => {
+        if(request.query.password === process.env.PASSWORD){
+            try {
+                const filter = { id: request.params.id };
+                //create if not exist
+                const options = { upsert: true };
+                const updateDoc = {
+                $set: {
+                    title: request.query.title,
+                    author: request.query.author,
+                    category: request.query.category,
+                    tags: request.query.tags,
+                    price: request.query.price
+                },
+                };
+                if(request.query.title && request.query.author && request.query.category && request.query.tags && request.query.price){
+                    noticesCollection.updateOne(filter, updateDoc, options);
+                    response.send('Notice updated!');
+                } else {
+                    response.send('Please fill all fields to update object.')
+                }
+            } catch {
+                throw error;
+            }
+        } else {
+            response.statusCode = 401;
+            response.send(`Error ${response.statusCode}. Wrong password! Type password in query param!`)
+        }
+        app.use((request, response, next) => {
+            response.statusCode = 500;
+            response.send('Error' + response.statusCode)
+        })
     })
 
     //Exercise 8
@@ -106,18 +187,21 @@ async function run() {
 
         if(findNotice.length === 0){
             response.statusCode = 404;
-            response.send('Notice not found');
+            response.send(`Error ${response.statusCode}. Notice not found`);
         } else {
             response.statusCode = 200;
             response.send(findNotice);
         }
-
+        app.use((request, response, next) => {
+            response.statusCode = 500;
+            response.send('Error' + response.statusCode)
+        })
     })
 
     // Exercise 10
     app.delete('/deleteNotice/', (request, response) => {
         response.statusCode = 200;
-        if(request.query.password === process.env.PASSWORD_FOR_DELETE){
+        if(request.query.password === process.env.PASSWORD){
             // Exercise 6
             const findNoticeBasedOnID = allNotices.filter(
                 notice => notice.id === request.query.id
@@ -125,7 +209,7 @@ async function run() {
     
             if(findNoticeBasedOnID.length === 0){
                 response.statusCode = 404;
-                response.send('Notice not found');
+                response.send(`Error ${response.statusCode}. Notice not found`);
             } else {
                 response.statusCode = 204;
                 noticesCollection.deleteOne({id: request.query.id});
@@ -135,42 +219,24 @@ async function run() {
             response.statusCode = 401;
             response.send(`Error ${response.statusCode}. Wrong password! Type password in query param!`)
         }
+        app.use((request, response, next) => {
+            response.statusCode = 500;
+            response.send('Error' + response.statusCode)
+        })
     })
 
     //Exercise 13
     app.get("*", (request, response) => {
         response.statusCode = 404;
         response.sendFile(__dirname + '/404NotFound.png');
+        app.use((request, response, next) => {
+            response.statusCode = 500;
+            response.send('Error' + response.statusCode)
+        })
     });
 
     
 }
 run().then().catch(console.error).finally(client.close());
-
-// Exercise 2
-app.get('/heartbeat', (request, response) => {
-    let currentDate = new Date();
-    let day = currentDate.getDate();
-    let month = currentDate.getMonth() + 1;
-    let year = currentDate.getFullYear();
-    response.write('Current date: ' + day + "-" + month + "-" + year);
-    response.end();
-})
-
-
-//Exercise 7 TO DO!!!
-app.put('/updateNotice', (request, response) => {
-    response.statusCode = 200;
-    const updateTitle = request.query.title;
-    notices.update({title: 'Test value'}, {title: updateTitle}, (error, response) => {
-        if(error){
-            response.send(error);
-        } else {
-            response.send({statusCode: 200, notices: response})
-        }
-    })
-})
-
-//Exercise 10
-
+// Exercise 1
 app.listen(process.env.SERVER_PORT, console.log('Server started'));
