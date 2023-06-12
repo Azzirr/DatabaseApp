@@ -2,6 +2,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 require('dotenv').config();
 const express = require('express');
 const crypto = require('crypto');
+const fs = require('fs');
 
 const app = express();
 const uri = process.env.CONNECTION_STRING;
@@ -14,6 +15,10 @@ const client = new MongoClient(uri, {
   }
 });
 
+const saveToFileFlag = (  
+    process.argv.indexOf('debug') > -1 ? true : false
+);
+console.log(saveToFileFlag ? 'Saving to file active!' : 'Saving to file not active!');
 async function run() {
     await client.connect();
     const db = client.db(process.env.DB_NAME);
@@ -26,6 +31,7 @@ async function run() {
     // EXERCISES
     // Exercise 2
     app.get('/heartbeat', (request, response) => {
+        request.start = Date.now();
         try {
             let currentDate = new Date();
             let day = currentDate.getDate();
@@ -34,17 +40,29 @@ async function run() {
             response.write('Current date: ' + day + "-" + month + "-" + year);
             app.use((request, response, next) => {
                 response.statusCode = 500;
-                response.send('Error' + response.statusCode)
+                response.send('Error' + response.statusCode);
             })
             response.end();
         } catch (error) {
             throw error;
         }
+        if(saveToFileFlag === true){
+            fs.appendFile("./requests.txt", JSON.stringify({
+                'Time': Date.now() - request.start,
+                'HTTP method': request.method,
+                'Address': request.protocol + '://' + request.get('host') + request.originalUrl
+            }) + '\r\n',
+            (error) => {
+                if(error) throw error;
+                console.log('Data saved to file!')
+            });
+        };
     })
 
     // Exercise 3 and Exercise 9
     let notices = [];
     app.post('/add', (request, response) => {
+        request.start = Date.now();
         if(request.query.title && request.query.author && request.query.category && request.query.tags && request.query.price && request.query.user){
             const newNotice = {
                 id: crypto.randomBytes(20).toString('hex'),
@@ -76,6 +94,17 @@ async function run() {
             response.statusCode = 400;
             response.send(`Error ${response.statusCode}. Wrong input! Please fill all fields.`);
         }
+        if(saveToFileFlag === true){
+            fs.appendFile("./requests.txt", JSON.stringify({
+                'Time': Date.now() - request.start,
+                'HTTP method': request.method,
+                'Address': request.protocol + '://' + request.get('host') + request.originalUrl
+            }) + '\r\n',
+            (error) => {
+                if(error) throw error;
+                console.log('Data saved to file!')
+            });
+        };
         app.use((request, response, next) => {
             response.statusCode = 500;
             response.send('Error' + response.statusCode)
@@ -84,6 +113,7 @@ async function run() {
 
     //Exercise 4
     app.get('/getNotice/:id', (request, response) => {
+        request.start = Date.now();
         response.statusCode = 200;
         const findNoticeBasedOnID = allNotices.filter(
             notice => notice.id === request.params.id
@@ -114,6 +144,17 @@ async function run() {
                 response.send(`Error ${response.statusCode}. Wrong "Accept" header`);
             }
         };
+        if(saveToFileFlag === true){
+            fs.appendFile("./requests.txt", JSON.stringify({
+                'Time': Date.now() - request.start,
+                'HTTP method': request.method,
+                'Address': request.protocol + '://' + request.get('host') + request.originalUrl
+            }) + '\r\n',
+            (error) => {
+                if(error) throw error;
+                console.log('Data saved to file!')
+            });
+        };
         app.use((request, response, next) => {
             response.statusCode = 500;
             response.send('Error' + response.statusCode)
@@ -122,16 +163,29 @@ async function run() {
 
     // Exercise 5
     app.get('/getNotices', (request, response) => {
+        request.start = Date.now();
         response.statusCode = 200;
         response.send(allNotices);
         app.use((request, response, next) => {
             response.statusCode = 500;
             response.send('Error' + response.statusCode)
         })
+        if(saveToFileFlag === true){
+            fs.appendFile("./requests.txt", JSON.stringify({
+                'Time': Date.now() - request.start,
+                'HTTP method': request.method,
+                'Address': request.protocol + '://' + request.get('host') + request.originalUrl
+            }) + '\r\n',
+            (error) => {
+                if(error) throw error;
+                console.log('Data saved to file!')
+            });
+        };
     })
 
     // Exercise 7 and Exercise 10
     app.patch('/updateNotice/:id', (request, response) => {
+        request.start = Date.now();
         if(request.query.password === process.env.PASSWORD){
             try {
                 const findNoticeBasedOnID = allNotices.filter(
@@ -175,6 +229,17 @@ async function run() {
             response.statusCode = 401;
             response.send(`Error ${response.statusCode}. Wrong password! Type password in query param!`)
         }
+        if(saveToFileFlag === true){
+            fs.appendFile("./requests.txt", JSON.stringify({
+                'Time': Date.now() - request.start,
+                'HTTP method': request.method,
+                'Address': request.protocol + '://' + request.get('host') + request.originalUrl
+            }) + '\r\n',
+            (error) => {
+                if(error) throw error;
+                console.log('Data saved to file!')
+            });
+        };
         app.use((request, response, next) => {
             response.statusCode = 500;
             response.send('Error' + response.statusCode)
@@ -183,6 +248,7 @@ async function run() {
 
     //Exercise 8
     app.get('/searchNotice', (request, response) => {
+        request.start = Date.now();
         const queryTitle = request.query.title;
         const queryCategory = request.query.category;
         const queryMinPrice = request.query.minprice;
@@ -224,6 +290,17 @@ async function run() {
             response.statusCode = 200;
             response.send(findNotice);
         }
+        if(saveToFileFlag === true){
+            fs.appendFile("./requests.txt", JSON.stringify({
+                'Time': Date.now() - request.start,
+                'HTTP method': request.method,
+                'Address': request.protocol + '://' + request.get('host') + request.originalUrl
+            }) + '\r\n',
+            (error) => {
+                if(error) throw error;
+                console.log('Data saved to file!')
+            });
+        };
         app.use((request, response, next) => {
             response.statusCode = 500;
             response.send('Error' + response.statusCode)
@@ -232,6 +309,7 @@ async function run() {
 
     // Exercise 10
     app.delete('/deleteNotice/', (request, response) => {
+        request.start = Date.now();
         response.statusCode = 200;
         if(request.query.password === process.env.PASSWORD){
             // Exercise 6
@@ -263,6 +341,17 @@ async function run() {
             response.statusCode = 401;
             response.send(`Error ${response.statusCode}. Wrong password! Type password in query param!`)
         }
+        if(saveToFileFlag === true){
+            fs.appendFile("./requests.txt", JSON.stringify({
+                'Time': Date.now() - request.start,
+                'HTTP method': request.method,
+                'Address': request.protocol + '://' + request.get('host') + request.originalUrl
+            }) + '\r\n',
+            (error) => {
+                if(error) throw error;
+                console.log('Data saved to file!')
+            });
+        };
         app.use((request, response, next) => {
             response.statusCode = 500;
             response.send('Error' + response.statusCode)
@@ -271,8 +360,20 @@ async function run() {
 
     //Exercise 13
     app.get("*", (request, response) => {
+        request.start = Date.now();
         response.statusCode = 404;
         response.sendFile(__dirname + '/404NotFound.png');
+        if(saveToFileFlag === true){
+            fs.appendFile("./requests.txt", JSON.stringify({
+                'Time': Date.now() - request.start,
+                'HTTP method': request.method,
+                'Address': request.protocol + '://' + request.get('host') + request.originalUrl
+            }) + '\r\n',
+            (error) => {
+                if(error) throw error;
+                console.log('Data saved to file!')
+            });
+        };
         app.use((request, response, next) => {
             response.statusCode = 500;
             response.send('Error' + response.statusCode)
