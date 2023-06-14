@@ -2,7 +2,6 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 require('dotenv').config();
 const express = require('express');
 const crypto = require('crypto');
-const fs = require('fs');
 const save = require('./saveToFile');
 
 const app = express();
@@ -93,10 +92,6 @@ async function run() {
         if(saveToFileFlag === true){
             save(requestData, requestStart);
         }
-        app.use((request, response, next) => {
-            response.statusCode = 500;
-            response.send('Error' + response.statusCode)
-        })
     })
 
     //Exercise 4
@@ -136,10 +131,6 @@ async function run() {
         if(saveToFileFlag === true){
             save(requestData, requestStart);
         }
-        app.use((request, response, next) => {
-            response.statusCode = 500;
-            response.send('Error' + response.statusCode)
-        })
     })
 
     // Exercise 5
@@ -148,10 +139,6 @@ async function run() {
         let requestStart = Date.now();
         response.statusCode = 200;
         response.send(allNotices);
-        app.use((request, response, next) => {
-            response.statusCode = 500;
-            response.send('Error' + response.statusCode)
-        })
         if(saveToFileFlag === true){
             save(requestData, requestStart);
         }
@@ -207,10 +194,6 @@ async function run() {
         if(saveToFileFlag === true){
             save(requestData, requestStart);
         }
-        app.use((request, response, next) => {
-            response.statusCode = 500;
-            response.send('Error' + response.statusCode)
-        })
     })
 
     //Exercise 8
@@ -261,10 +244,6 @@ async function run() {
         if(saveToFileFlag === true){
             save(requestData, requestStart);
         }
-        app.use((request, response, next) => {
-            response.statusCode = 500;
-            response.send('Error' + response.statusCode)
-        })
     })
 
     // Exercise 10
@@ -305,10 +284,6 @@ async function run() {
         if(saveToFileFlag === true){
             save(requestData, requestStart);
         }
-        app.use((request, response, next) => {
-            response.statusCode = 500;
-            response.send('Error' + response.statusCode)
-        })
     })
 
     //Exercise 13
@@ -320,12 +295,11 @@ async function run() {
         if(saveToFileFlag === true){
             save(requestData, requestStart);
         }
-        app.use((request, response, next) => {
-            response.statusCode = 500;
-            response.send('Error' + response.statusCode)
-        })
     });
-
+    app.use((error, request, response) => {
+        response.statusCode = 500;
+        response.send('Error' + response.statusCode)
+    })
     
 }
 run().then().catch(console.error).finally(client.close());
