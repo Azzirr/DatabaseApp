@@ -1,15 +1,16 @@
 const fs = require('fs');
 
-const save = function(requestData, requestStart){
+const loggerMiddleware = async function(req, res, next) {
         fs.appendFile("./requests.txt", JSON.stringify({
-            'Time': Date.now() - requestStart,
-            'HTTP method': requestData.method,
-            'Address': requestData.protocol + '://' + requestData.get('host') + requestData.originalUrl
+            'Time': new Date().toLocaleDateString(),
+            'HTTP method': req.method,
+            'Address': req.protocol + '://' + req.get('host') + req.originalUrl
         }) + '\r\n',
         (error) => {
             if(error) throw error;
             console.log('Data saved to file!')
         });
+        res.end()
 }
 
-module.exports = save;
+module.exports = loggerMiddleware;

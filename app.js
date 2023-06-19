@@ -15,10 +15,12 @@ const client = new MongoClient(uri, {
   }
 });
 
-const saveToFileFlag = (  
-    process.argv.indexOf('debug') > -1 ? true : false
-);
-console.log(saveToFileFlag ? 'Saving to file active!' : 'Saving to file not active!');
+if (process.argv.includes("debug")) {
+    console.log('Saving to file active!')
+    app.use(save)
+} else {
+    console.log('Saving to file is not active!')
+}
 
 async function run() {
     await client.connect();
@@ -47,9 +49,6 @@ async function run() {
             response.end();
         } catch (error) {
             throw error;
-        }
-        if(saveToFileFlag === true){
-            save(requestData, requestStart);
         }
     })
 
@@ -89,9 +88,6 @@ async function run() {
             response.statusCode = 400;
             response.send(`Error ${response.statusCode}. Wrong input! Please fill all fields.`);
         }
-        if(saveToFileFlag === true){
-            save(requestData, requestStart);
-        }
     })
 
     //Exercise 4
@@ -128,9 +124,6 @@ async function run() {
                 response.send(`Error ${response.statusCode}. Wrong "Accept" header`);
             }
         };
-        if(saveToFileFlag === true){
-            save(requestData, requestStart);
-        }
     })
 
     // Exercise 5
@@ -139,9 +132,6 @@ async function run() {
         let requestStart = Date.now();
         response.statusCode = 200;
         response.send(allNotices);
-        if(saveToFileFlag === true){
-            save(requestData, requestStart);
-        }
     })
 
     // Exercise 7 and Exercise 10
@@ -191,9 +181,6 @@ async function run() {
             response.statusCode = 401;
             response.send(`Error ${response.statusCode}. Wrong password! Type password in query param!`)
         }
-        if(saveToFileFlag === true){
-            save(requestData, requestStart);
-        }
     })
 
     //Exercise 8
@@ -241,9 +228,6 @@ async function run() {
             response.statusCode = 200;
             response.send(findNotice);
         }
-        if(saveToFileFlag === true){
-            save(requestData, requestStart);
-        }
     })
 
     // Exercise 10
@@ -281,9 +265,6 @@ async function run() {
             response.statusCode = 401;
             response.send(`Error ${response.statusCode}. Wrong password! Type password in query param!`)
         }
-        if(saveToFileFlag === true){
-            save(requestData, requestStart);
-        }
     })
 
     //Exercise 13
@@ -292,9 +273,6 @@ async function run() {
         let requestStart = Date.now();
         response.statusCode = 404;
         response.sendFile(__dirname + '/404NotFound.png');
-        if(saveToFileFlag === true){
-            save(requestData, requestStart);
-        }
     });
     app.use((error, request, response) => {
         response.statusCode = 500;
