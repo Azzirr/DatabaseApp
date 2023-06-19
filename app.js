@@ -34,8 +34,6 @@ async function run() {
     // EXERCISES
     // Exercise 2
     app.get('/heartbeat', (request, response) => {
-        let requestData = request;
-        let requestStart = Date.now();
         try {
             let currentDate = new Date();
             let day = currentDate.getDate();
@@ -55,8 +53,6 @@ async function run() {
     // Exercise 3 and Exercise 9
     let notices = [];
     app.post('/add', (request, response) => {
-        let requestData = request;
-        let requestStart = Date.now();
         if(request.query.title && request.query.author && request.query.category && request.query.tags && request.query.price && request.query.user){
             const newNotice = {
                 id: crypto.randomBytes(20).toString('hex'),
@@ -92,8 +88,6 @@ async function run() {
 
     //Exercise 4
     app.get('/getNotice/:id', (request, response) => {
-        let requestData = request;
-        let requestStart = Date.now();
         response.statusCode = 200;
         const findNoticeBasedOnID = allNotices.filter(
             notice => notice.id === request.params.id
@@ -128,16 +122,12 @@ async function run() {
 
     // Exercise 5
     app.get('/getNotices', (request, response) => {
-        let requestData = request;
-        let requestStart = Date.now();
         response.statusCode = 200;
         response.send(allNotices);
     })
 
     // Exercise 7 and Exercise 10
     app.patch('/updateNotice/:id', (request, response) => {
-        let requestData = request;
-        let requestStart = Date.now();
         if(request.query.password === process.env.PASSWORD){
             try {
                 const findNoticeBasedOnID = allNotices.filter(
@@ -185,8 +175,6 @@ async function run() {
 
     //Exercise 8
     app.get('/searchNotice', (request, response) => {
-        let requestData = request;
-        let requestStart = Date.now();
         const queryTitle = request.query.title;
         const queryCategory = request.query.category;
         const queryMinPrice = request.query.minprice;
@@ -232,8 +220,6 @@ async function run() {
 
     // Exercise 10
     app.delete('/deleteNotice/', (request, response) => {
-        let requestData = request;
-        let requestStart = Date.now();
         response.statusCode = 200;
         if(request.query.password === process.env.PASSWORD){
             // Exercise 6
@@ -269,8 +255,6 @@ async function run() {
 
     //Exercise 13
     app.get("*", (request, response) => {
-        let requestData = request;
-        let requestStart = Date.now();
         response.statusCode = 404;
         response.sendFile(__dirname + '/404NotFound.png');
     });
